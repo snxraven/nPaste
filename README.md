@@ -6,6 +6,7 @@ This server incorporates a password within the header to provide a simple layer 
 
 
 ** New ** 
+
 nPaste now supports password protected pastes via htpasswd and htaccess for individual pastes.  
 
 ## Example Coammnds
@@ -65,10 +66,15 @@ You will need to fill out server-settings-default.json and rename the file to se
   }
 ```
 *serverPassword - The header password, make this very large!
+
 *pasteHTTPLocation - Where your pastes are saved
+
 *pasteDomain - The URL the pastes will be hosted at (With trailing slash)
+
 *htPasswdPvtFolder - A private folder just for holding .htpasswd files
+
 *htaccessLocation - .htaccess file for appending new username and passwords
+
 
 
 ## Server Usage 
