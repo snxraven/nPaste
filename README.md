@@ -10,12 +10,15 @@ nPaste now supports password protected pastes via htpasswd and htaccess for indi
 
 ## Example Coammnds
 Normal Paste
+
 ```$ echo "hello, npaste" | npaste```
 
 Username and Password Protection
+
 ```$ echo "hello, npaste" | npaste username password```
 
 ```$ echo "hello, npaste" | npaste delete pasteid```
+
 *pasteid example: 87830925898230
 
 ## Example Output
