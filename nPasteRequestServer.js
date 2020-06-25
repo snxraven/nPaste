@@ -1,101 +1,166 @@
-// npaste v1.0
-// Written by: SNXRaven
-// This is a simple HTTP Server, that accepts piped data from CLI posted via CURL
-// curl -X PUT --data-binary @- -H 'passwd: 1234'  -H 'Content-Type: text/plain' http://domain.tld:8080
-// This can be added into a shell script and compiled via SHC: shc -r -f script.sh
-// This will allow redistribution via compiled binary so your paste password is not shared. 
-//////////////////////////////////////////Server-Usage///////////////////////////////////////////                          
-//                                 node httpRequestServer.js                                   //
-//                           You can also run via pm2 to keep alive                            //
-//                               pm2 start nPasteRequestServer.js                               //
-/////////////////////////////////////////////////////////////////////////////////////////////////
-//                                 Client Compile & Install                                    //
-/////////////////////////////////////////////////////////////////////////////////////////////////                          
-//                                   $ shc -r -f script.sh                                     //
-//                                   $ mv script.sh.x npaste                                   //
-//                        Test with echo "Hello, World" | ./npaste                             //
-//                        If test is successful:                                               //
-//                        cp npaste /usr/bin/npaste                                            //
-//                                                                                             //
-//                        Installation Complete, Final Syntax:                                 //
-//                                 echo "test" | npaste                                        //
-/////////////////////////////////////////////////////////////////////////////////////////////////
-//                                 To distribute:                                              //
-//   Copy your compiled client to your paste folder and then run on your new client server     //
-//                        curl -O https://paste.domain.tld/npaste                              //
-//                        Test with echo "Hello, World" | ./npaste                             //
-//                        If test is successful:                                               //
-//                        cp npaste /usr/bin/npaste                                            //
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 const http = require('http');
+const fs = require('fs')
+let manager = require('htpasswd-mgr')
+
+const settings = require("./server-settings.json");
+
+
 let reqData;
 let reqDataProc;
 let name;
-// Make this strong! I recommend a 2048 Char Pass here. This will be hard coded into the client as well.
-const serverPassword = "1234";
-
-// Your new pastes name, generated randomly
+let fileBody;
+let puname;
+let ppass;
+let delFinished;
+// Settup NPM for htpasswd storage. 
+const serverPassword = settings.serverPassword;
+// Assign Paste Name
 name = Math.floor(Math.random() * 99999999999999);
 
-// Create the server
 http.createServer((request, response) => {
-  // Setting up the request
-  const { headers, method, url } = request;
-  // Get the body asset ready
+  const {
+    headers,
+    method,
+    url
+  } = request;
   let body = [];
-  // Give Error if exists, push the data chunks and when done give us the body
   request.on('error', (err) => {
     console.error(err);
   }).on('data', (chunk) => {
     body.push(chunk);
   }).on('end', () => {
     body = Buffer.concat(body).toString();
-    
-    // If We get a response in error, lets find out the issue
+    // BEGINNING OF NEW STUFF
+    //console.log(body)
     response.on('error', (err) => {
       console.error(err);
     });
-    
-    // Request is ready, lets give us a response of success and reply back with JSON
+
     response.statusCode = 200;
     response.setHeader('Content-Type', 'application/json');
-     
-    // Setting up our body
-    const responseBody = { headers, method, url, body };
-    
-    // We have the paste name above, lets send it to the client
-    response.write("\n-------------------------------------------------------\n");
-    response.write("Paste Saved:  https://domain.tld/" + name);
-    response.write("\n");
-    // Kill the response
-    response.end();
-    
-    // Parsing out our data from the client
+    // Note: the 2 lines above could be replaced with this next one:
+    // response.writeHead(200, {'Content-Type': 'application/json'})
+
+    const responseBody = {
+      headers,
+      method,
+      url,
+      body
+    };
+
     reqData = JSON.stringify(responseBody)
     reqDataProc = JSON.parse(reqData)
+    fileBody = reqDataProc.body;
 
-    // Check password sent from the client
-    //console.log(reqDataProc.headers.passwd)
-    if (serverPassword != reqDataProc.headers.passwd) {
-      return console.log("PASSWORD AUTH FAILED! Returning")
-    } else { // Var Rec  reqDataProc.body
-      // The password checked out, lets log this paste and write its contents to the public_html directory
-      console.log("Recived Data from Client")
-      console.log("Saving Paste ID: " + name)
-      fs = require('fs')
-      fs.writeFile('/home/user/public_html/paste/' + name, reqDataProc.body, function (err, data) {
-        if (err) {
-          return console.log(err);
+    if (reqDataProc.headers.delete) {
+      const delPath = settings.pasteHTTPLocation + reqDataProc.headers.deleteid
+      console.log(delPath)
+      console.log(reqDataProc.headers)
+
+      try {
+        fs.unlinkSync(delPath)
+        console.log("File Removed")
+        delFinished = 1;
+      } catch (err) {
+        //console.error(err)
+        response.write("\n--------------------ERROR---------------------\n");
+        response.write("Paste NOT FOUND! Nothing was Deleted!");
+      }
+      if (delFinished === 1) {
+        response.write("\n-------------------------------------------------------\n");
+        response.write("Paste Deleted!");
+        response.end();
+        return
+      } else {
+        response.end();
+
+      }
+
+    } else {
+
+      response.write("\n-------------------------------------------------------\n");
+      response.write("Paste Saved: " + settings.pasteDomain + name);
+      response.write("\n");
+
+      response.end();
+
+      // Server Pasdsword sent from client
+      //console.log(reqDataProc.headers.passwd)
+
+      // For Decode Use Only - This prints the user and pass sent from the shell script -
+      //console.log(reqDataProc.headers.uname)
+      //console.log(reqDataProc.headers.upass)
+
+      if (serverPassword != reqDataProc.headers.passwd) {
+        return console.log("PASSWORD AUTH FAILED! Returning")
+      } else { // Var Rec  reqDataProc.body
+
+        if (reqDataProc.headers.uname && reqDataProc.headers.upass) {
+          // Generating the .htpasswd file for this paste
+          hTfilePath = settings.htPasswdPvtFolder + '.htpasswd-' + name;
+          const fd = fs.openSync(hTfilePath, 'w', 0o644)
+
+          console.log("This is an Auth Paste - Lets set up the user.")
+          puname = reqDataProc.headers.uname;
+          ppass = reqDataProc.headers.upass
+          console.log(puname + ppass)
+
+          // Allow the manager to know the file path to htpasswd
+          htpasswdManager = manager(hTfilePath);
+
+          // Add a user with username 'john' and password 'password123' via the 'crypt' algorithm
+          htpasswdManager.addUser(puname, ppass, {
+            algorithm: 'crypt',
+            export: true
+          });
+
+          // Now we add the .htaccess entry for the paste
+
+          var dataHtAccess = "\n#Protect single file\n<Files " + name + ">\nAuthName 'Dialog prompt'\nAuthType Basic\nAuthUserFile " + settings.htPasswdPvtFolder + ".htpasswd-" + name + "\nRequire valid-user\n</Files>";
+
+          // append data to file
+          fs.appendFile(settings.htaccessLocation, dataHtAccess, 'utf8',
+            // callback function
+            function (err) {
+              if (err) throw err;
+              // if no error
+              console.log("Data is appended to file successfully.")
+
+
+            });
+
+          console.log("Recived Data from Client")
+          console.log("Saving Paste ID: " + name)
+          //  console.log(responseBody)
+          fs.writeFile(settings.pasteHTTPLocation + name, reqDataProc.body, function (err, data) {
+            if (err) {
+              return console.log(err);
+            }
+            console.log("done");
+            name = Math.floor(Math.random() * 99999999999999);
+
+          });
+
+
+        } else {
+          // If no password is needed, just make the paste!
+          console.log("Recived Data from Client")
+          console.log("Saving Paste ID: " + name)
+          //  console.log(responseBody)
+          fs.writeFile(settings.pasteHTTPLocation + name, reqDataProc.body, function (err, data) {
+            if (err) {
+              return console.log(err);
+            }
+            console.log("done");
+            name = Math.floor(Math.random() * 99999999999999);
+
+          });
+
+
         }
-        // This paste is finished...Lets log that.
-        console.log("done");
-        // Reset the name var ensuring a new name for the next paste. 
-        name = Math.floor(Math.random() * 99999999999999);
-      });
+      }
     }
+    // END OF NEW STUFF
   });
-}).listen(8080);
-console.log("nPaste v1.0 is running on port: 8080")
+}).listen(1337);
+console.log("Running on port: 1337")

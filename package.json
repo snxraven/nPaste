@@ -1,0 +1,29 @@
+{
+  "name": "npaste",
+  "version": "1.0.1",
+  "description": "A paste server written in node that supports deleting and htpasswd protected pastes!",
+  "main": "httpRequestServer.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/snxraven/nPaste.git"
+  },
+  "keywords": [
+    "node",
+    "paste"
+  ],
+  "author": "snxraven",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/snxraven/nPaste/issues"
+  },
+  "homepage": "https://github.com/snxraven/nPaste#readme",
+  "dependencies": {
+    "htpasswd-mgr": "^1.0.7"
+  }
+}

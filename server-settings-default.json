@@ -1,0 +1,9 @@
+{
+    "serverPassword": "1234",
+    "pasteHTTPLocation": "/home/user/public_html/paste/",
+    "pasteDomain": "https://paste.domain.tld/",
+    "htPasswdPvtFolder": "/home/user/public_html/paste/private/",
+    "htaccessLocation": "/home/user/public_html/paste/.htaccess"
+  }
+
+
