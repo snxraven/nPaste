@@ -4,7 +4,7 @@
 username=$1
 password=$2
 
-if [ $username == "delete" ]
+if [ "$username" == "delete" ]
 then
 curl -H 'delete: yes' -H "deleteID: $2"  -H 'passwd: 1234'  -H 'Content-Type: text/plain' http://domain.tld:8080
 echo ""
