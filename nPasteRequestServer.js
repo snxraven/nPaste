@@ -24,9 +24,11 @@ http.createServer((request, response) => {
     url
   } = request;
   let body = [];
+
   request.on('error', (err) => {
     console.error(err);
   }).on('data', (chunk) => {
+
     body.push(chunk);
   }).on('end', () => {
     body = Buffer.concat(body).toString();
@@ -52,48 +54,53 @@ http.createServer((request, response) => {
     reqDataProc = JSON.parse(reqData)
     fileBody = reqDataProc.body;
 
-    if (reqDataProc.headers.delete) {
-      const delPath = settings.pasteHTTPLocation + reqDataProc.headers.deleteid
-      console.log(delPath)
-      console.log(reqDataProc.headers)
+    // Server Pasdsword sent from client
+    //console.log(reqDataProc.headers.passwd)
 
-      try {
-        fs.unlinkSync(delPath)
-        console.log("File Removed")
-        delFinished = 1;
-      } catch (err) {
-        //console.error(err)
-        response.write("\n--------------------ERROR---------------------\n");
-        response.write("Paste NOT FOUND! Nothing was Deleted!");
-      }
-      if (delFinished === 1) {
-        response.write("\n-------------------------------------------------------\n");
-        response.write("Paste Deleted!");
-        response.end();
-        return
-      } else {
-        response.end();
+    // For Decode Use Only - This prints the user and pass sent from the shell script -
+    //console.log(reqDataProc.headers.uname)
+    //console.log(reqDataProc.headers.upass)
 
-      }
-
-    } else {
-
-      response.write("\n-------------------------------------------------------\n");
-      response.write("Paste Saved: " + settings.pasteDomain + name);
-      response.write("\n");
-
+    if (serverPassword != reqDataProc.headers.passwd) {
+      response.write("The request failed, please check the request data, and try again. ERR 1-22-X");
       response.end();
+      return console.log("PASSWORD AUTH FAILED! Returning")
 
-      // Server Pasdsword sent from client
-      //console.log(reqDataProc.headers.passwd)
 
-      // For Decode Use Only - This prints the user and pass sent from the shell script -
-      //console.log(reqDataProc.headers.uname)
-      //console.log(reqDataProc.headers.upass)
 
-      if (serverPassword != reqDataProc.headers.passwd) {
-        return console.log("PASSWORD AUTH FAILED! Returning")
-      } else { // Var Rec  reqDataProc.body
+    } else { // Var Rec  reqDataProc.body
+
+      if (reqDataProc.headers.delete) {
+        const delPath = settings.pasteHTTPLocation + reqDataProc.headers.deleteid
+        console.log(delPath)
+        console.log(reqDataProc.headers)
+
+        try {
+          fs.unlinkSync(delPath)
+          console.log("File Removed")
+          delFinished = 1;
+        } catch (err) {
+          //console.error(err)
+          response.write("\n--------------------ERROR---------------------\n");
+          response.write("Paste NOT FOUND! Nothing was Deleted!");
+        }
+        if (delFinished === 1) {
+          response.write("\n-------------------------------------------------------\n");
+          response.write("Paste Deleted!");
+          response.end();
+          return
+        } else {
+          response.end();
+
+        }
+
+      } else {
+
+        response.write("\n-------------------------------------------------------\n");
+        response.write("Paste Saved: " + settings.pasteDomain + name);
+        response.write("\n");
+
+        response.end();
 
         if (reqDataProc.headers.uname && reqDataProc.headers.upass) {
           // Generating the .htpasswd file for this paste
