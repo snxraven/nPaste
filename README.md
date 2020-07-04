@@ -9,16 +9,6 @@ This server incorporates a password within the header to provide a simple layer 
 
 nPaste now supports password protected pastes via htpasswd and htaccess for individual pastes.  
 
-**NOTE**
-
-I finished this last commit at 4 AM - There are security issues currently in this code that allow anyone to delete pastes. 
-
-I will update this soon to ensure header password checks work properly. 
-
-Just need a little code restructure in some spots.
-
-**NOTE**
-
 
 ## Example Commands
 Normal Paste
