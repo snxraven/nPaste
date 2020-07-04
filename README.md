@@ -19,10 +19,10 @@ Username and Password Protection
 
 ```$ echo "hello, npaste" | npaste username password```
 
-```$ ls | npaste delete pasteid```
+```$ npaste delete pasteid```
 
 *pasteid example: 87830925898230
-* To delete you must still pipe a command.
+(Paste deletes no longer require pipes)
 
 ## Example Output
 
