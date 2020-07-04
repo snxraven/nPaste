@@ -6,17 +6,33 @@ This server incorporates a password within the header to provide a simple layer 
 
 
 ** New ** 
+
 nPaste now supports password protected pastes via htpasswd and htaccess for individual pastes.  
 
-## Example Coammnds
+**NOTE**
+
+I finished this last commit at 4 AM - There are security issues currently in this code that allow anyone to delete pastes. 
+
+I will update this soon to ensure header password checks work properly. 
+
+Just need a little code restructure in some spots.
+
+**NOTE**
+
+
+## Example Commands
 Normal Paste
+
 ```$ echo "hello, npaste" | npaste```
 
 Username and Password Protection
+
 ```$ echo "hello, npaste" | npaste username password```
 
-```$ echo "hello, npaste" | npaste delete pasteid```
+```$ ls | npaste delete pasteid```
+
 *pasteid example: 87830925898230
+* To delete you must still pipe a command.
 
 ## Example Output
 
@@ -61,10 +77,15 @@ You will need to fill out server-settings-default.json and rename the file to se
   }
 ```
 *serverPassword - The header password, make this very large!
+
 *pasteHTTPLocation - Where your pastes are saved
+
 *pasteDomain - The URL the pastes will be hosted at (With trailing slash)
+
 *htPasswdPvtFolder - A private folder just for holding .htpasswd files
+
 *htaccessLocation - .htaccess file for appending new username and passwords
+
 
 
 ## Server Usage 
