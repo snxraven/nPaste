@@ -56,6 +56,7 @@ http.createServer((request, response) => {
 
     // Server Pasdsword sent from client
     //console.log(reqDataProc.headers.passwd)
+    
     // For Decode Use Only - This prints the user and pass sent from the shell script -
     //console.log(reqDataProc.headers.uname)
     //console.log(reqDataProc.headers.upass)
